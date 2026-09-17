@@ -31,6 +31,13 @@ export default function InteractiveLogo() {
       ease: "power3.out",
     });
 
+    // 初始光的位置
+    glow.style.setProperty("--glow-x", "50%");
+    glow.style.setProperty("--glow-y", "50%");
+
+    // =========================
+    // Logo 自己漂
+    // =========================
     const autoMove = () => {
       if (userActive) return;
 
@@ -65,6 +72,9 @@ export default function InteractiveLogo() {
       }
     };
 
+    // =========================
+    // 滑鼠 / 手指控制
+    // =========================
     const followPointer = (event: PointerEvent) => {
       userActive = true;
       stopAutoMove();
@@ -72,9 +82,11 @@ export default function InteractiveLogo() {
       const areaRect = area.getBoundingClientRect();
       const moverRect = mover.getBoundingClientRect();
 
+      // 桌機讓 Logo 稍微離開游標
       const offsetX =
         event.pointerType === "mouse" ? 35 : 0;
 
+      // 手機讓 Logo 在手指上方
       const offsetY =
         event.pointerType === "mouse" ? 20 : -70;
 
@@ -105,14 +117,27 @@ export default function InteractiveLogo() {
       moveX(targetX);
       moveY(targetY);
 
+      // 計算 Logo 中心位置
+      const glowX =
+        targetX + moverRect.width / 2;
+
+      const glowY =
+        targetY + moverRect.height / 2;
+
+      // 整張背景上的光跟著 Logo
       gsap.to(glow, {
+        "--glow-x": `${glowX}px`,
+        "--glow-y": `${glowY}px`,
         opacity: 1,
-        duration: 0.2,
-        ease: "power2.out",
+        duration: 0.4,
+        ease: "power3.out",
         overwrite: true,
       });
     };
 
+    // =========================
+    // 結束互動
+    // =========================
     const endInteraction = () => {
       if (idleTimer) {
         clearTimeout(idleTimer);
@@ -120,7 +145,7 @@ export default function InteractiveLogo() {
 
       gsap.to(glow, {
         opacity: 0,
-        duration: 0.9,
+        duration: 1,
         ease: "power2.out",
       });
 
@@ -130,6 +155,9 @@ export default function InteractiveLogo() {
       }, 700);
     };
 
+    // =========================
+    // Touch 開始
+    // =========================
     const handlePointerDown = (event: PointerEvent) => {
       if (event.pointerType !== "mouse") {
         touchActive = true;
@@ -137,7 +165,11 @@ export default function InteractiveLogo() {
       }
     };
 
+    // =========================
+    // Pointer 移動
+    // =========================
     const handlePointerMove = (event: PointerEvent) => {
+      // 電腦滑鼠
       if (event.pointerType === "mouse") {
         followPointer(event);
 
@@ -152,11 +184,15 @@ export default function InteractiveLogo() {
         return;
       }
 
+      // 手機必須正在碰螢幕
       if (touchActive) {
         followPointer(event);
       }
     };
 
+    // =========================
+    // Touch 放開
+    // =========================
     const handlePointerUp = (event: PointerEvent) => {
       if (event.pointerType !== "mouse") {
         touchActive = false;
@@ -164,6 +200,9 @@ export default function InteractiveLogo() {
       }
     };
 
+    // =========================
+    // 初始狀態
+    // =========================
     gsap.set(mover, {
       x: 40,
       y: 40,
@@ -173,18 +212,48 @@ export default function InteractiveLogo() {
       opacity: 0,
     });
 
-    window.addEventListener("pointerdown", handlePointerDown);
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
-    window.addEventListener("pointercancel", handlePointerUp);
+    window.addEventListener(
+      "pointerdown",
+      handlePointerDown
+    );
+
+    window.addEventListener(
+      "pointermove",
+      handlePointerMove
+    );
+
+    window.addEventListener(
+      "pointerup",
+      handlePointerUp
+    );
+
+    window.addEventListener(
+      "pointercancel",
+      handlePointerUp
+    );
 
     autoMove();
 
     return () => {
-      window.removeEventListener("pointerdown", handlePointerDown);
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-      window.removeEventListener("pointercancel", handlePointerUp);
+      window.removeEventListener(
+        "pointerdown",
+        handlePointerDown
+      );
+
+      window.removeEventListener(
+        "pointermove",
+        handlePointerMove
+      );
+
+      window.removeEventListener(
+        "pointerup",
+        handlePointerUp
+      );
+
+      window.removeEventListener(
+        "pointercancel",
+        handlePointerUp
+      );
 
       if (idleTimer) {
         clearTimeout(idleTimer);
@@ -216,6 +285,41 @@ export default function InteractiveLogo() {
         cursor: "default",
       }}
     >
+      {/* ========================
+          全螢幕發光背景
+      ======================== */}
+      <div
+        ref={glowRef}
+        style={{
+          position: "absolute",
+
+          inset: 0,
+
+          background:
+            "radial-gradient(" +
+            "circle 240px at var(--glow-x, 50%) var(--glow-y, 50%), " +
+            "rgba(255,216,74,0.90) 0%, " +
+            "rgba(255,216,74,0.62) 12%, " +
+            "rgba(255,216,74,0.34) 28%, " +
+            "rgba(255,216,74,0.15) 48%, " +
+            "rgba(255,216,74,0.055) 66%, " +
+            "rgba(255,216,74,0.015) 80%, " +
+            "rgba(255,216,74,0) 100%" +
+            ")",
+
+          opacity: 0,
+
+          pointerEvents: "none",
+
+          zIndex: 1,
+
+          willChange: "opacity, background",
+        }}
+      />
+
+      {/* ========================
+          Logo 移動物件
+      ======================== */}
       <div
         ref={moverRef}
         style={{
@@ -230,47 +334,10 @@ export default function InteractiveLogo() {
           pointerEvents: "none",
 
           willChange: "transform",
+
+          zIndex: 2,
         }}
       >
-        {/* 柔和發光區 */}
-        <div
-          ref={glowRef}
-          style={{
-            position: "absolute",
-
-            left: "50%",
-            top: "50%",
-
-            width: "clamp(360px, 105vw, 620px)",
-            height: "clamp(360px, 105vw, 620px)",
-
-            transform: "translate(-50%, -50%)",
-
-            borderRadius: "50%",
-
-            background:
-              "radial-gradient(circle, " +
-              "rgba(255,216,74,0.82) 0%, " +
-              "rgba(255,216,74,0.50) 18%, " +
-              "rgba(255,216,74,0.28) 34%, " +
-              "rgba(255,216,74,0.12) 50%, " +
-              "rgba(255,216,74,0.05) 66%, " +
-              "rgba(255,216,74,0.015) 78%, " +
-              "rgba(255,216,74,0) 90%)",
-
-            filter: "none",
-
-            opacity: 0,
-
-            pointerEvents: "none",
-
-            zIndex: 1,
-
-            willChange: "opacity",
-          }}
-        />
-
-        {/* Logo */}
         <img
           src="/logo.png"
           alt="Logo"
@@ -288,8 +355,6 @@ export default function InteractiveLogo() {
 
             pointerEvents: "none",
             userSelect: "none",
-
-            zIndex: 2,
           }}
         />
       </div>

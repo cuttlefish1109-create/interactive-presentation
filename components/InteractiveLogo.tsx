@@ -31,7 +31,6 @@ export default function InteractiveLogo() {
       ease: "power3.out",
     });
 
-    // Logo 自己漂
     const autoMove = () => {
       if (userActive) return;
 
@@ -73,14 +72,11 @@ export default function InteractiveLogo() {
       const areaRect = area.getBoundingClientRect();
       const moverRect = mover.getBoundingClientRect();
 
-      // 桌機 Logo 稍微離開滑鼠，讓游標看得到
-      const offsetX = event.pointerType === "mouse" ? 35 : 0;
+      const offsetX =
+        event.pointerType === "mouse" ? 35 : 0;
 
-      // 手機讓 Logo 稍微在手指上方，不會被手指蓋住
       const offsetY =
-        event.pointerType === "mouse"
-          ? 20
-          : -70;
+        event.pointerType === "mouse" ? 20 : -70;
 
       let targetX =
         event.clientX -
@@ -109,20 +105,22 @@ export default function InteractiveLogo() {
       moveX(targetX);
       moveY(targetY);
 
-      // 操作時亮起
       gsap.to(glow, {
         opacity: 1,
         duration: 0.2,
+        ease: "power2.out",
         overwrite: true,
       });
     };
 
     const endInteraction = () => {
-      if (idleTimer) clearTimeout(idleTimer);
+      if (idleTimer) {
+        clearTimeout(idleTimer);
+      }
 
       gsap.to(glow, {
         opacity: 0,
-        duration: 0.8,
+        duration: 0.9,
         ease: "power2.out",
       });
 
@@ -143,7 +141,9 @@ export default function InteractiveLogo() {
       if (event.pointerType === "mouse") {
         followPointer(event);
 
-        if (idleTimer) clearTimeout(idleTimer);
+        if (idleTimer) {
+          clearTimeout(idleTimer);
+        }
 
         idleTimer = setTimeout(() => {
           endInteraction();
@@ -152,7 +152,6 @@ export default function InteractiveLogo() {
         return;
       }
 
-      // 手機必須正在觸碰螢幕才追蹤
       if (touchActive) {
         followPointer(event);
       }
@@ -187,9 +186,13 @@ export default function InteractiveLogo() {
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerUp);
 
-      if (idleTimer) clearTimeout(idleTimer);
+      if (idleTimer) {
+        clearTimeout(idleTimer);
+      }
 
-      if (autoTween) autoTween.kill();
+      if (autoTween) {
+        autoTween.kill();
+      }
 
       gsap.killTweensOf(mover);
       gsap.killTweensOf(glow);
@@ -202,15 +205,14 @@ export default function InteractiveLogo() {
       style={{
         width: "100%",
         height: "100dvh",
+
         position: "relative",
         overflow: "hidden",
 
         backgroundColor: "#10271f",
 
-        // 手機手指操作不會被瀏覽器當成頁面捲動
         touchAction: "none",
 
-        // 桌機游標保留
         cursor: "default",
       }}
     >
@@ -218,47 +220,64 @@ export default function InteractiveLogo() {
         ref={moverRef}
         style={{
           position: "absolute",
+
           left: 0,
           top: 0,
 
-          // 手機會縮小，桌機最大 180px
           width: "clamp(120px, 30vw, 180px)",
           height: "clamp(120px, 30vw, 180px)",
 
           pointerEvents: "none",
+
           willChange: "transform",
         }}
       >
+        {/* 柔和發光區 */}
         <div
           ref={glowRef}
           style={{
             position: "absolute",
+
             left: "50%",
             top: "50%",
 
-            // 手機光圈也會一起縮
-            width: "clamp(280px, 75vw, 420px)",
-            height: "clamp(280px, 75vw, 420px)",
+            width: "clamp(360px, 105vw, 620px)",
+            height: "clamp(360px, 105vw, 620px)",
 
             transform: "translate(-50%, -50%)",
+
             borderRadius: "50%",
 
             background:
-              "radial-gradient(circle, rgba(255,216,74,0.95) 0%, rgba(255,216,74,0.45) 30%, rgba(255,216,74,0.12) 55%, rgba(255,216,74,0) 75%)",
+              "radial-gradient(circle, " +
+              "rgba(255,216,74,0.82) 0%, " +
+              "rgba(255,216,74,0.50) 18%, " +
+              "rgba(255,216,74,0.28) 34%, " +
+              "rgba(255,216,74,0.12) 50%, " +
+              "rgba(255,216,74,0.05) 66%, " +
+              "rgba(255,216,74,0.015) 78%, " +
+              "rgba(255,216,74,0) 90%)",
 
-            filter: "blur(24px)",
+            filter: "none",
+
             opacity: 0,
+
             pointerEvents: "none",
+
             zIndex: 1,
+
+            willChange: "opacity",
           }}
         />
 
+        {/* Logo */}
         <img
           src="/logo.png"
           alt="Logo"
           draggable={false}
           style={{
             position: "absolute",
+
             left: "50%",
             top: "50%",
 
@@ -269,6 +288,7 @@ export default function InteractiveLogo() {
 
             pointerEvents: "none",
             userSelect: "none",
+
             zIndex: 2,
           }}
         />
